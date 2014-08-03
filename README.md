@@ -4,9 +4,9 @@ Some utility functions for working with Promises in node
 
 ## `wait( milliseconds, value )`
 
-```js
-
 `setTimeout` wrapped in a promise.
+
+```js
 
 promiseUtil.wait( 1000, value )
 	.then( function(value) {
@@ -16,7 +16,7 @@ promiseUtil.wait( 1000, value )
 
 ## `defer()`
 
-Returns a promise with a resolve and reject method.  Creates a closure so you don't have to.
+Creates a closure so you don't have to.  Returns a promise with `resolve()` and `reject()` methods.  
 
 Useful for converting callbacks to promises.
 
@@ -28,14 +28,15 @@ fs.readFile( filename, function( e, contents ) {
 	}
 	defer.resolve(contents);
 } );
-
 ```
 
 ## `callback( context, fn, args... )`
 
 Calls a function using the node callback pattern as a promise.
 
-`fn` can be a the function name as a string, or the function its self.
+`context` is the context to call the function in.
+
+`fn` can be the function name as a string, or the function itself.
 
 If the callback returns more than one argument, they will be returned as an array.
 
