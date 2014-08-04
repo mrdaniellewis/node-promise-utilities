@@ -1,14 +1,11 @@
 { 
 	"name" : "promise-util",
-	"description": "Utility functions for working with Promises",
+	"description": "Utility functions for working with Promises in Node",
 	"version": "0.1.0",
 	"license": "MIT",
 	"author": "Daniel Lewis",
 	"main" : "./index.js",
-	"repository": {
-		"type": "git",
-		"url": ""
-	},
+	"repository": "git://github.com/mrdaniellewis/node-promise-utilities.git",
 	"dependencies": {
 		"promise-polyfill": "^1.1.2"
 	},
