@@ -153,38 +153,6 @@ var testQueue = new TestQueue()
 			.then(pass)
 			.catch(fail);
 
-	} )
-	.addTest( 'promiseUtil.bindAll - resolving', function( pass, fail ) {
-
-		var foo = {
-			bar: 'foo'
-		};
-		var test = function( value1, value2, cb ) {
-			cb( null, this.bar, value1, value2 );
-		};
-
-		Promise.resolve( 'quack' )
-			.then( promiseUtil.bindAll( foo, test, 'moo', 'cow' ) )
-			.then( function( value ) {
-				assert.deepEqual( value, ['foo','moo','cow'] );
-				pass();
-			} )
-			.catch(fail);
-
-	} )
-	.addTest( 'promiseUtil.bindAll - rejecting', function( pass, fail ) {
-
-		var fs = require('fs');
-		var path = require('path');
-
-		Promise.resolve( 'quack' )
-			.then( promiseUtil.bindAll( null, fs.readFile, path.resolve( __dirname, 'doesnotexist' ) ) )
-			.catch( function(e) {
-				assert.equal( e.code, 'ENOENT' );
-			})
-			.then(pass)
-			.catch(fail);
-
 	} );
 	
 

@@ -63,10 +63,3 @@ exports.callback = function( context, fn /* args...*/ ) {
 	}
 	return deferred;
 };
-
-exports.bindAll = function( context, fn /* args...*/ ) {
-	var args = Array.prototype.slice.call(arguments);
-	return function() {
-		return exports.callback.apply( null, args );
-	};
-};
