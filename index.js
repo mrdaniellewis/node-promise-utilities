@@ -5,9 +5,7 @@
  *	Utilities to help with working with promises
  */
 
-if ( typeof Promise === 'undefined' ) {
-	var Promise = require('promise-polyfill');
-}
+var Promise = require('promise-polyfill');
 
 /**
  *	A wrapper for setTimeout
@@ -62,4 +60,46 @@ exports.callback = function( context, fn /* args...*/ ) {
 		fn.apply( context, args );
 	}
 	return deferred;
+};
+
+/**
+ *	Given a generator, run it to its conclusion
+ *	Basically from http://www.html5rocks.com/en/tutorials/es6/promises/
+ */
+exports.spawn = function spawn(gen){
+  
+	function next( value ) { 
+		var result;
+		try {
+			result = it.next(value); 
+		} catch(e) {
+			return Promise.reject(e);
+		}
+
+		if (result.done) {
+			return result.value;
+		}
+
+		return Promise.resolve(result.value)
+			.then(next,error);
+	}
+
+	function error( value ) { 
+		var result;
+		try {
+			result = it.throw(value);
+		} catch(e) {
+			return Promise.reject(e);
+		}
+
+		if (result.done) {
+			return result.value;
+		}
+
+		return Promise.resolve(result.value)
+			.then(next,error);
+	}
+
+	var it = gen();
+	return next();
 };

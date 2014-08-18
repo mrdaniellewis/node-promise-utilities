@@ -14,7 +14,7 @@ if ( typeof Promise === 'undefined' ) {
 var testQueue = new TestQueue()
 	.addTest( 'promiseUtil.wait', function( pass, fail ) {
 
-		promiseUtil.wait( 1000, 'foo' )
+		promiseUtil.wait( 100, 'foo' )
 			.then( function(value) {
 				assert.equal( value, 'foo' );
 			} )
