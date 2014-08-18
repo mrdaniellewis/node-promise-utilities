@@ -1,7 +1,7 @@
 { 
 	"name" : "promise-util",
 	"description": "Utility functions for working with Promises in Node",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"license": "MIT",
 	"author": "Daniel Lewis",
 	"repository": "git://github.com/mrdaniellewis/node-promise-utilities.git",
