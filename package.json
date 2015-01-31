@@ -1,17 +1,17 @@
 { 
 	"name" : "promise-util",
 	"description": "Utility functions for working with Promises in Node",
-	"version": "0.1.1",
-	"license": "MIT",
+	"version": "1.0.0-alpha",
+	"license": "ISC",
 	"author": "Daniel Lewis",
 	"repository": "git://github.com/mrdaniellewis/node-promise-utilities.git",
 	"dependencies": {
 		"promise-polyfill": "^1.1.2"
 	},
 	"devDependencies": {
-		"test-queue": "^0.1"
+		"mocha": "^2.1.0"
 	},
 	"scripts": {
-		"test": "node test"
+		"test": "mocha"
 	}
 }
