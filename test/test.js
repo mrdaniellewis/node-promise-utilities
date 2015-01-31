@@ -1,28 +1,27 @@
-/*jshint node:true*/
+/* jshint node:true, mocha: true */
 "use strict";
 
-var assert = require('assert');
+var promiseUtil = require( './' );
 
-var TestQueue = require('test-queue');
-var promiseUtil = require('promise-util');
+describe( 'wait', function() {
 
-if ( typeof Promise === 'undefined' ) {
-	var Promise = require('promise-polyfill');
-}
+	it( 'resolve a promise after the set time', function() {
+
+		var time = Date.now();
+
+		return promiseUtil.wait( 100 )
+			.then( function() {
 
 
-var testQueue = new TestQueue()
-	.addTest( 'promiseUtil.wait', function( pass, fail ) {
 
-		promiseUtil.wait( 100, 'foo' )
-			.then( function(value) {
-				assert.equal( value, 'foo' );
-			} )
-			.then(pass)
-			.catch(fail);
+			} );
 
-	} )
-	.addTest( 'promiseUtil.defer - passing', function( pass, fail ) {
+	} );
+
+} );
+
+/*
+.addTest( 'promiseUtil.defer - passing', function( pass, fail ) {
 
 		var defer = promiseUtil.defer();
 		defer
@@ -154,7 +153,93 @@ var testQueue = new TestQueue()
 			.catch(fail);
 
 	} );
+
+	// Generates the tests.  Running the tests returns a promise
+
+var assert = require('assert');
+var promiseUtil = require('promise-util');
+
+module.exports = [
+	{	name: 'Spawn',
+		fn: function( pass, fail ) {
+
+		function *gen() {
+			var count = 0;
+
+			count += yield 1;
+			count += yield Promise.resolve(2)
+				.then( function(value) {
+					return value + 4;
+				} );
+			try {
+				count += yield Promise.reject(8);
+
+			} catch(e) {
+				count += e;
+			}
+
+			count += yield 16;
+			return count;
+
+		}
+
+		promiseUtil.spawn(gen)
+			.then( function(value) {
+				assert.equal(value, 1+2+4+8+16 );
+				pass();
+			} )
+			.catch(fail);
+
+		} 
+	},
+
+	{	name: 'Spawn - returning rejected promise',
+		fn: function( pass, fail ) {
+
+		var count = 0;
+		function *gen() {
 	
+			count += yield 1;
+			count += yield Promise.reject(2);
+			count += yield 4;	
 
-module.exports = testQueue;
+		}
 
+		promiseUtil.spawn(gen)
+			.catch( function(value) {
+				assert.equal(value, 2 );
+				assert.equal(count, 1 );
+			} )
+			.then(pass)
+			.catch(fail);
+
+		} 
+	},
+
+	{	name: 'Spawn - returning error',
+		fn: function( pass, fail ) {
+
+		var count = 0;
+		function *gen() {
+	
+			count += yield 1;	
+			throw 'foo';
+			count += yield 2;	
+
+		}
+
+		promiseUtil.spawn(gen)
+			.catch( function(value) {
+				assert.equal(value, 'foo' );
+				assert.equal(count, 1 );
+			} )
+			.then(pass)
+			.catch(fail);
+
+		} 
+	}
+];
+
+
+	
+*/
