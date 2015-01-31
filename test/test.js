@@ -1,7 +1,8 @@
 /* jshint node:true, mocha: true */
 "use strict";
 
-var promiseUtil = require( '../' );
+var Promise = require('promise-polyfill');
+var promiseUtil = require('../');
 var expect = require('expect');
 
 describe( 'wait', function() {
@@ -23,6 +24,41 @@ describe( 'wait', function() {
 
 		return promiseUtil.wait( 0, 'foo bar' )
 			.then( function(value) {
+				expect( value ).toEqual( 'foo bar' );
+			} );
+
+	} );
+
+} );
+
+describe( 'defer', function() {
+
+	it ( 'returns a promise', function() {
+		expect( promiseUtil.defer() ).toBeA( Promise );
+	} );
+
+	it ( 'resolves with the provided value when resolve is called', function() {
+		var defer = promiseUtil.defer();
+
+		defer.resolve( 'foo bar' );
+
+		return defer
+			.then( function(value) {
+				expect( value ).toEqual( 'foo bar' );
+			} );
+
+	} );
+
+	it ( 'rejects to the provided value when reject is called', function() {
+		var defer = promiseUtil.defer();
+
+		defer.reject( 'foo bar' );
+
+		return defer
+			.then( function() {
+				throw new Error('should not be called');
+			} )
+			.catch( function(value) {
 				expect( value ).toEqual( 'foo bar' );
 			} );
 
