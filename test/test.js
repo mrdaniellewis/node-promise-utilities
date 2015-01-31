@@ -33,11 +33,11 @@ describe( 'wait', function() {
 
 describe( 'defer', function() {
 
-	it ( 'returns a promise', function() {
+	it( 'returns a promise', function() {
 		expect( promiseUtil.defer() ).toBeA( Promise );
 	} );
 
-	it ( 'resolves with the provided value when resolve is called', function() {
+	it( 'resolves with the provided value when resolve is called', function() {
 		var defer = promiseUtil.defer();
 
 		defer.resolve( 'foo bar' );
@@ -49,7 +49,7 @@ describe( 'defer', function() {
 
 	} );
 
-	it ( 'rejects to the provided value when reject is called', function() {
+	it( 'rejects to the provided value when reject is called', function() {
 		var defer = promiseUtil.defer();
 
 		defer.reject( 'foo bar' );
@@ -66,139 +66,150 @@ describe( 'defer', function() {
 
 } );
 
-/*
-.addTest( 'promiseUtil.defer - passing', function( pass, fail ) {
+describe( 'callback', function() {
 
-		var defer = promiseUtil.defer();
-		defer
-			.then( function(value) {
-				assert.equal( value, 'foo' );
-			} )
-			.then(pass)
-			.catch(fail);
+	// Create a test object with a node type callback
+	function Tester(value) {
+		this.value = value;
+	}
+	// This will call cb with, this.value and the supplied arguments, 
+	// or as an error if the first argument is an error 
+	Tester.prototype.callback = function( /* args.., cb */ ) {
+		
+		var args = Array.prototype.slice.call( arguments );
+		var cb = args.pop();
 
-		defer.resolve('foo');
+		if ( args[0] instanceof Error ) {
 
-	} )
-	.addTest( 'promiseUtil.defer - throw error', function( pass, fail ) {
+			cb( args[0] );
 
-		var defer = promiseUtil.defer();
-		defer
-			.then( function(value) {
-				throw new Error('Should not resolve');
-			} )
-			.catch( function(value) {
-				assert.equal( value, 'foo' );
-			} )
-			.then(pass)
-			.catch(fail);
+		} else {
+			
+			args.unshift( this.value );
+			args.unshift( null );
+			cb.apply( null, args );
+		}
+	};
+	var tester = new Tester('foo bar');
 
-		defer.reject('foo');
 
-	} )
-	.addTest( 'promiseUtil.callback - context and name', function( pass, fail ) {
+	describe( 'calling with a context and function name', function() {
 
-		var fs = require('fs');
-		var path = require('path');
-		var testFilePath = path.resolve( __dirname, 'test.txt' );
+		it( 'returns the callback result as a promise', function() {
 
-		promiseUtil.callback( fs, 'readFile', testFilePath, {encoding: 'utf8'} )
-			.then( function(value) {
-				assert.equal( value, 'Lorem ipsum' );
-			} )
-			.then(pass)
-			.catch(fail);
+			return promiseUtil.callback( tester, 'callback' )
+				.then( function(value) {
+					expect( value ).toBe( 'foo bar' );
+				} );
 
-	} )
-	.addTest( 'promiseUtil.callback - function only', function( pass, fail ) {
+		} );
 
-		var fs = require('fs');
-		var path = require('path');
-		var testFilePath = path.resolve( __dirname, 'test.txt' );
+		it( 'returns multiple arguments as an array', function() {
 
-		promiseUtil.callback( null, fs.readFile, testFilePath, {encoding: 'utf8'} )
-			.then( function(value) {
-				assert.equal( value, 'Lorem ipsum' );
-			} )
-			.then(pass)
-			.catch(fail);
+			return promiseUtil.callback( tester, 'callback', 'fee', 'fi' )
+				.then( function(value) {
+					expect( value ).toEqual( [ 'foo bar', 'fee', 'fi' ] );
+				} );
 
-	} )
-	.addTest( 'promiseUtil.callback - context and function', function( pass, fail ) {
+		} );
 
-		var foo = {
-			bar: 'foo'
-		};
-		var test = function( value, cb ) {
-			cb( null, this.bar + ' ' + value );
-		};
+		it( 'rejects the promise on an error', function() {
 
-		promiseUtil.callback( foo, test, 'fee' )
-			.then( function(value) {
-				assert.equal( value, 'foo fee' );
-			} )
-			.then(pass)
-			.catch(fail);
+			return promiseUtil.callback( tester, 'callback', new Error('error') )
+				.then( function() {
+					throw new Error('should not be called');
+				} )
+				.catch( function(value) {
+					expect( value ).toBeA( Error );
+					expect( value.message ).toBe( 'error' );
+				} );
 
-	} )
-	.addTest( 'promiseUtil.callback - mutilple return values', function( pass, fail ) {
-
-		var foo = {
-			bar: 'foo'
-		};
-		var test = function( value, cb ) {
-			cb( null, 'foo', value );
-		};
-
-		promiseUtil.callback( foo, test, 'fee' )
-			.then( function(value) {
-				assert.deepEqual( value, ['foo','fee'] );
-			} )
-			.then(pass)
-			.catch(fail);
-
-	} )
-	.addTest( 'promiseUtil.callback - error - context and name', function( pass, fail ) {
-
-		var fs = require('fs');
-		var path = require('path');
-
-		promiseUtil.callback( fs, 'readFile', path.resolve( __dirname, 'doesnotexist' )  ) 
-			.catch( function(e) {
-				assert.equal( e.code, 'ENOENT' );
-			})
-			.then(pass)
-			.catch(fail);
-	} )
-	.addTest( 'promiseUtil.callback - error - function only', function( pass, fail ) {
-
-		var fs = require('fs');
-		var path = require('path');
-
-		promiseUtil.callback( null, fs.readFile, path.resolve( __dirname, 'doesnotexist' )  ) 
-			.catch( function(e) {
-				assert.equal( e.code, 'ENOENT' );
-			})
-			.then(pass)
-			.catch(fail);
-	} )
-	.addTest( 'promiseUtil.callback - error - context and function', function( pass, fail ) {
-
-		var foo = {
-			bar: 'foo'
-		};
-		var test = function( value, cb ) {
-			cb( 'error' );
-		};
-
-		promiseUtil.callback( foo, test, 'fee' )
-			.catch( function(e) {
-				assert.equal( e, 'error' );
-			})
-			.then(pass)
-			.catch(fail);
+		} );
 
 	} );
+
+	describe( 'calling with a function', function() {
+
+		it( 'returns the callback result as a promise', function() {
+
+			return promiseUtil.callback( null, tester.callback.bind(tester) )
+				.then( function(value) {
+					expect( value ).toBe( 'foo bar' );
+				} );
+
+		} );
+
+		it( 'returns multiple arguments as an array', function() {
+
+			return promiseUtil.callback( null, tester.callback.bind(tester), 'fee', 'fi' )
+				.then( function(value) {
+					expect( value ).toEqual( [ 'foo bar', 'fee', 'fi' ] );
+				} );
+
+		} );
+
+		it( 'rejects the promise on an error', function() {
+
+			return promiseUtil.callback( null, tester.callback.bind(tester), new Error('error') )
+				.then( function() {
+					throw new Error('should not be called');
+				} )
+				.catch( function(value) {
+					expect( value ).toBeA( Error );
+					expect( value.message ).toBe( 'error' );
+				} );
+
+		} );
+
+	} );
+
+	describe( 'calling with a context and function', function() {
+
+		var tester2 = new Tester('fi fo');
+
+		it( 'returns the callback result as a promise', function() {
+
+			return promiseUtil.callback( tester2, tester.callback )
+				.then( function(value) {
+					expect( value ).toBe( 'fi fo' );
+				} );
+
+		} );
+
+		it( 'returns multiple arguments as an array', function() {
+
+			return promiseUtil.callback( tester2, tester.callback, 'fee', 'fi' )
+				.then( function(value) {
+					expect( value ).toEqual( [ 'fi fo', 'fee', 'fi' ] );
+				} );
+
+		} );
+
+		it( 'rejects the promise on an error', function() {
+
+			return promiseUtil.callback( tester2, tester.callback, new Error('error') )
+				.then( function() {
+					throw new Error('should not be called');
+				} )
+				.catch( function(value) {
+					expect( value ).toBeA( Error );
+					expect( value.message ).toBe( 'error' );
+				} );
+
+		} );
+
+	} );
+
+} );
+
+
+
+/*
+
+	
+	
+	
+
 
 	// Generates the tests.  Running the tests returns a promise
 
