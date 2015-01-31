@@ -62,6 +62,8 @@ exports.callback = function( context, fn /* args...*/ ) {
 	return deferred;
 };
 
+exports.Queue = require('./lib/promise-queue.js');
+
 /**
  *	Given a generator, run it to its conclusion
  *	Basically from http://www.html5rocks.com/en/tutorials/es6/promises/
