@@ -9,7 +9,8 @@
 		"promise-polyfill": "^1.1.2"
 	},
 	"devDependencies": {
-		"mocha": "^2.1.0"
+		"mocha": "^2.1.0",
+		"expect": "^1.5.0"
 	},
 	"scripts": {
 		"test": "mocha"
