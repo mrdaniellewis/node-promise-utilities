@@ -1,19 +1,29 @@
 /* jshint node:true, mocha: true */
 "use strict";
 
-var promiseUtil = require( './' );
+var promiseUtil = require( '../' );
+var expect = require('expect');
 
 describe( 'wait', function() {
 
-	it( 'resolve a promise after the set time', function() {
+	it( 'resolve a promise after the time provided in the first argument', function() {
 
 		var time = Date.now();
 
 		return promiseUtil.wait( 100 )
 			.then( function() {
+				expect( Date.now() ).toBeGreaterThan( time - 100 );
+			} );
 
+	} );
 
+	it( 'resolves to the value of the second argument', function() {
 
+		var time = Date.now();
+
+		return promiseUtil.wait( 0, 'foo bar' )
+			.then( function(value) {
+				expect( value ).toEqual( 'foo bar' );
 			} );
 
 	} );
@@ -241,5 +251,5 @@ module.exports = [
 ];
 
 
-	
+
 */
