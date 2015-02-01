@@ -154,6 +154,21 @@ describe( 'Queue', function() {
 
 		} );
 
+		it( 'runs tasks in the queue\'s context', function() {
+
+			var queue = new Queue()
+				.then( function() {
+					expect(this).toBe(queue);
+					throw new Error('error');
+				} )
+				.catch( function() {
+					expect(this).toBe(queue);
+				} );
+
+			return queue.run();
+
+		} );
+
 		it( 'emits a start event when starting', function() {
 
 			var queue = new Queue();

@@ -123,7 +123,7 @@ var queue = new Queue()
 
 #### `Queue.prototype.then( resolveFn, rejectFn )`
 
-Add a task to the queue.
+Add a task to the queue.  Tasks will be run in the context of the queue.
 
 * `resolveFn` _optional_ function to resolve with
 * `rejectFn` _optional_ function to reject with
