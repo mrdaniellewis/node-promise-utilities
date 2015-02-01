@@ -61,27 +61,3 @@ promises then do this.
 ```js
 var readFile = promiseUtil.callback.bind( null, fs, 'readFile' );
 ```
-
-## `spawn( function *(){ ... } )`
-
-This only works in Node 0.11 (or higher), if the `--harmony` flag is applied as it uses
-generators.
-
-See the bottom of here: http://www.html5rocks.com/en/tutorials/es6/promises/
-
-It will run a generator to completion, pausing on any promises encountered
-and returning the resolved value to the generator.
-
-```js
-function *doStuff() {
-	
-	var results = [];
-	results.push( yield asyncTask1() );
-	results.push( yield asyncTask2() );
-
-	return results;
-}
-
-promiseUtil.spawn(doStuff)
-	.then( /* do stuff with the results */ )
-```
