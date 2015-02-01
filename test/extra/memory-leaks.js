@@ -13,7 +13,7 @@ var util = require('util');
 
 	console.log( 'This takes a long time to run' );
 
-	var maxLength = 100000//1000000;
+	var maxLength = 100000;
 	var started = false;
 	var collection = [0];
 	var hd;
