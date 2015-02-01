@@ -116,7 +116,7 @@ var queue = new Queue()
 			// value = [1,4,9,16,25];
 		} );
 
-// See below for concurrancy options
+// See below for concurrency options
 ```
 
 ### Instance methods
@@ -148,7 +148,7 @@ Returns a `Promise`.
 
 Run the set of tasks against a collection in series and return the result of all tasks as a promise.
 
-* `collection` An array of starting values to run the queue against.
+* `collection` An array of values to run the queue against.
 * `options.collect` Boolean, default=true, Collect the results of each run in an array
 * `options.parallel` Integer, default=1, How many queues to run at once
 * `options.infinite` Boolean, default=false, Keep running until `finish` is called.
@@ -162,7 +162,7 @@ This will `shift()` the first value from the `collection` and then `run()` it.  
 
 `parallel` controls how many queues are allowed to `run()` at once.
 
-If `collect` is false than `undefined` rather than an array of results will be returned.  This is useful if collection is very large.
+If `collect` is false than `undefined` rather than an array of results will be returned in the resolved promise.  This is useful if collection is very large.
 
 Items can be added to `collection` while it runs.  If `infinite` is true, the returned `Promise` will not resolve until `finish` is called.  If `infinite` is true, `collect` defaults to false.
 
