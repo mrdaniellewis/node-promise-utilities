@@ -1,5 +1,7 @@
 # Promise utilities
 
+[![npm version](https://badge.fury.io/js/promise-util.svg)](http://badge.fury.io/js/promise-util)
+
 Some utility functions for working with Promises in node.
 
 ```bash
@@ -57,12 +59,10 @@ promiseUtil.callback( fs, 'readFile', filename )
 	.then( /* do stuff */ );
 
 // Is equivalent to
-
 promiseUtil.callback( fs, fs.readFile, filename )
 	.then( /* do stuff */ );
 
 // Is equivalent to (but in this case only because fs functions require no context)
-
 promiseUtil.callback( null, fs.readFile, filename )
 	.then( /* do stuff */ ); 
 ```
