@@ -10,6 +10,9 @@ npm install promise-util
 
 `setTimeout` wrapped in a promise.
 
+* `milliseconds` Integer, time to wait
+* `value` value to return
+
 ```js
 var promiseUtil = require('promise-util');
 
@@ -37,13 +40,13 @@ fs.readFile( filename, function( e, contents ) {
 } );
 ```
 
-## `callback( context, fn, args... )`
+## `callback( context, fn, ...args )`
 
 Calls a function using the node callback pattern as a promise.
 
-`context` is the context to call the function in.
-
-`fn` can be the function name as a string, or the function itself.
+* `context` is the context to call the function in.
+* `fn` can be the function name as a string, or the function itself.
+* `...args` arguments to pass to the function
 
 If the callback returns more than one argument, they will be returned as an array.
 
@@ -118,7 +121,7 @@ var queue = new Queue()
 
 ### Instance methods
 
-#### `Queue.prototype.then( {Function} resolveFn, {Function} rejectFn )`
+#### `Queue.prototype.then( resolveFn, rejectFn )`
 
 Add a task to the queue.
 
@@ -127,7 +130,7 @@ Add a task to the queue.
 
 Returns the `Queue` instance for chaining.
 
-#### `Queue.prototype.catch( {Function} rejectFn )`
+#### `Queue.prototype.catch( rejectFn )`
 
 Add a catch task to the queue
 
@@ -141,14 +144,27 @@ Run the set of tasks.
 
 Returns a `Promise`.
 
-#### `Queue.prototype.runSeries( {Array} collection, {Object} options )`
+#### `Queue.prototype.runSeries( collection, options )`
 
 Run the set of tasks against a collection in series and return the result of all tasks as a promise.
 
 * `collection` An array of starting values to run the queue against.
-* `options.collect` Boolean, default=true
-* `options.parallel` Integer, default=1
-* `options.infinite` Boolean, default=false
+* `options.collect` Boolean, default=true, Collect the results of each run in an array
+* `options.parallel` Integer, default=1, How many queues to run at once
+* `options.infinite` Boolean, default=false, Keep running until `finish` is called.
+
+Returns a `Promise`, with the additional methods `abort` and `finish`.
+
+* `abort()` will abort running the series.
+* `finish()` will end the series if the `infinite` option is used.
+
+This will `shift()` the first value from the `collection` and then `run()` it.  It will continue to do this until `collection` is empty.  It then resolves the promise with an array of the results of each run.
+
+`parallel` controls how many queues are allowed to `run()` at once.
+
+If `collect` is false than `undefined` rather than an array of results will be returned.  This is useful if collection is very large.
+
+Items can be added to `collection` while it runs.  If `infinite` is true, the returned `Promise` will not resolve until `finish` is called.  If `infinite` is true, `collect` defaults to false.
 
 ### Events
 
