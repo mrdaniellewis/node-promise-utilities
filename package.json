@@ -1,19 +1,19 @@
-{ 
-	"name" : "promise-util",
-	"description": "Utility functions for working with Promises in Node",
-	"version": "1.0.0",
-	"license": "ISC",
-	"author": "Daniel Lewis",
-	"repository": "git://github.com/mrdaniellewis/node-promise-utilities.git",
-	"dependencies": {
-		"promise-polyfill": "^2.0.2"
-	},
-	"devDependencies": {
-		"mocha": "*",
-		"expect": "*",
-		"memwatch-next": "*"
-	},
-	"scripts": {
-		"test": "mocha"
-	}
+{
+  "name": "promise-util",
+  "description": "Utility functions for working with Promises in Node",
+  "version": "1.0.1",
+  "license": "ISC",
+  "author": "Daniel Lewis",
+  "repository": "git://github.com/mrdaniellewis/node-promise-utilities.git",
+  "dependencies": {
+    "promise-polyfill": "^2.0.2"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "expect": "*",
+    "memwatch-next": "*"
+  },
+  "scripts": {
+    "test": "mocha"
+  }
 }
