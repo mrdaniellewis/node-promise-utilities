@@ -3,7 +3,7 @@
 
 var Promise = require('promise-polyfill');
 var Queue = require('../../').Queue;
-var memwatch = require('memwatch');
+var memwatch = require('memwatch-next');
 var util = require('util');
 
 
