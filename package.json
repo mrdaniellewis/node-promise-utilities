@@ -6,7 +6,7 @@
   "author": "Daniel Lewis",
   "repository": "git://github.com/mrdaniellewis/node-promise-utilities.git",
   "dependencies": {
-    "require-promise": "*"
+    "require-promise": "1.0.1"
   },
   "devDependencies": {
     "mocha": "*",
