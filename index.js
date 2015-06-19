@@ -1,11 +1,11 @@
-/*jshint node:true*/
+/* jshint node:true */
 'use strict';
 
 /**
  *	Utilities to help with working with promises
  */
 
-var Promise = require('promise-polyfill');
+var Promise = require('require-promise');
 
 /**
  *	A wrapper for setTimeout

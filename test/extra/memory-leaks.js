@@ -1,7 +1,7 @@
 /* jshint node:true, mocha: true */
 "use strict";
 
-var Promise = require('promise-polyfill');
+var Promise = require('require-promise');
 var Queue = require('../../').Queue;
 var memwatch = require('memwatch-next');
 var util = require('util');

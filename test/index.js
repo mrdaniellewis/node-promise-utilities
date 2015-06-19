@@ -1,7 +1,7 @@
 /* jshint node:true, mocha: true */
 "use strict";
 
-var Promise = require('promise-polyfill');
+var Promise = require('require-promise');
 var promiseUtil = require('../');
 var expect = require('expect');
 
@@ -62,6 +62,16 @@ describe( 'defer', function() {
 				expect( value ).toEqual( 'foo bar' );
 			} );
 
+	} );
+
+	it( 'returns the native promise when available', function() {
+
+		if ( global.Promise && global.Promise.toString() === 'function Promise() { [native code] }' ) {
+			var defer = promiseUtil.defer();
+
+			expect(defer).toBeA( global.Promise );
+		}
+		
 	} );
 
 } );

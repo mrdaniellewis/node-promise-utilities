@@ -2,7 +2,7 @@
 "use strict";
 
 var expect = require('expect');
-var Promise = require('promise-polyfill');
+var Promise = require('require-promise');
 var promiseUtil = require('../');
 var Queue = promiseUtil.Queue;
 
@@ -67,6 +67,15 @@ describe( 'Queue', function() {
 			var ret = new Queue().run();
 			expect( ret ).toBeA( Promise );
 
+		} );
+
+		it( 'returns the native promise when available', function() {
+
+			if ( global.Promise && global.Promise.toString() === 'function Promise() { [native code] }' ) {
+				var ret = new Queue().run();
+				expect( ret ).toBeA( global.Promise );
+			}
+			
 		} );
 
 		it( 'resolves the supplied chain of promises', function() {
