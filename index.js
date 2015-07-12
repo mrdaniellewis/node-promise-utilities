@@ -6,6 +6,9 @@
  */
 
 var Promise = require('require-promise');
+var Queue = require('./lib/promise-queue.js');
+
+var NOOP = function(){};
 
 /**
  *	A wrapper for setTimeout
@@ -62,7 +65,53 @@ exports.callback = function( context, fn /* args...*/ ) {
 	return deferred;
 };
 
-exports.Queue = require('./lib/promise-queue.js');
+exports.Queue = Queue;
+
+/**
+ *	Creates a first in first out queue
+ *	@param {Object} [options]
+ *	@param {Number} [options.parallel] How many operations to run in parallel
+ *	@returns {Function} A function that queues new items to be processed
+ */
+exports.fifo = function( options ) {
+
+	options = options || {};
+	var queue = [];
+	new Queue()
+		.then( function(fn) {
+			return fn();
+		} )
+		.catch( NOOP )
+		.runSeries( queue, { parallel: options.parallel, infinite: true } );
+
+
+	return function(fn) {
+		var promise = exports.defer();
+
+		function run() {
+			
+			var ret;
+			if ( typeof fn === 'function' ) {
+
+				ret = new Promise( function(resolve) {
+					resolve(fn());
+				} ) ;
+
+			} else {
+				ret = Promise.resolve(fn);
+			}
+
+			return ret
+				.then( promise.resolve, promise.reject );
+		}
+
+		queue.push( run );
+
+		return promise;
+	};
+
+};
+
 
 /**
  *	Given a generator, run it to its conclusion

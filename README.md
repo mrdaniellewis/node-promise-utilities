@@ -174,4 +174,25 @@ The `Queue` instance is an event emitter and will emit the following events:
 * *resolved* when a queue resolves, with the result as the first argument
 * *rejected* when a queue rejects, with the error as the fitst argument
 
+## `fifo( options )`
+
+A first in first out queue.  Runs tasks in the order they are given ensuring tasks complete before the next one starts.
+
+* `options.parallel` Integer, the number of tasks to run in parallel.  Defaults to `1`.
+
+Returns a `Function` that adds additional items to the queue.
+The function will return a Promise resolving when the item finishes.  Items an be functions, values or promises.
+
+```js
+// Create a fifo queue
+var fifo = require('promise-util').fifo();
+
+// Add a task
+fifo( function() {	
+		return someLongProcessReturningAPromise();
+	} )
+	.then( function() {
+		// Do something else
+	} );
+
 

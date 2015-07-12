@@ -5,7 +5,7 @@ var Promise = require('require-promise');
 var promiseUtil = require('../');
 var expect = require('expect');
 
-describe( 'wait', function() {
+describe( 'promiseUtil.wait', function() {
 
 	it( 'resolve a promise after the time provided in the first argument', function() {
 
@@ -31,7 +31,7 @@ describe( 'wait', function() {
 
 } );
 
-describe( 'defer', function() {
+describe( 'promiseUtil.defer', function() {
 
 	it( 'returns a promise', function() {
 		expect( promiseUtil.defer() ).toBeA( Promise );
@@ -76,7 +76,7 @@ describe( 'defer', function() {
 
 } );
 
-describe( 'callback', function() {
+describe( 'promiseUtil.callback', function() {
 
 	// Create a test object with a node type callback
 	function Tester(value) {
@@ -209,6 +209,224 @@ describe( 'callback', function() {
 		} );
 
 	} );
+
+} );
+
+describe( 'promiseUtil.Queue', function() {
+
+	it( 'is a pointer to Queue', function() {
+		expect( promiseUtil.Queue ).toBe( require( '../lib/promise-queue') );
+	} );
+
+} );
+
+describe( 'promiseUtil.fifo', function() {
+
+	it( 'returns a function', function() {
+		expect( promiseUtil.fifo() ).toBeA( Function );
+	} );
+
+	it( 'the returned function returns a Promise', function() {
+		expect( promiseUtil.fifo()() ).toBeA( Promise );
+	} );
+
+	describe( 'resolving queue items', function() {
+
+		var fifo;
+		var test = {};
+
+		beforeEach( function() {
+			fifo = promiseUtil.fifo();
+		} );
+
+
+		it( 'it resolves non-promises', function() {
+		
+			return fifo( test  )
+				.then( function(value) {
+					expect( value ).toBe( test );
+				} );
+		} );
+
+		it( 'it resolves functions', function() {
+		
+			return fifo( function() {
+					return test;
+				} )
+				.then( function(value) {
+					expect( value ).toBe( test );
+				} );
+		} );
+
+		it( 'it rejects rejecting functions', function() {
+		
+			return fifo( function() {
+					return Promise.reject(test);
+				} )
+				.then( function(value) {
+					throw new Error( 'Should not have been called' );
+				} )
+				.catch( function(value) {
+					expect( value ).toBe( test );
+				} );
+		} );
+
+		it( 'it rejects erroring functions', function() {
+		
+			return fifo( function() {
+					throw test;
+				} )
+				.then( function(value) {
+					throw new Error( 'Should not have been called' );
+				} )
+				.catch( function(value) {
+					expect( value ).toBe( test );
+				} );
+		} );
+
+		it( 'it rejects rejected promises', function() {
+			
+			return fifo( Promise.reject(test) )
+				.then( function(value) {
+					throw new Error( 'Should not have been called' );
+				} )
+				.catch( function(value) {
+					expect( value ).toBe( test );
+				} );
+				
+		} );
+
+		it( 'it resolves promises', function() {
+			
+			return fifo( Promise.resolve(test) )
+				.then( function(value) {
+					expect( value ).toBe( test );
+				} );
+		} );
+
+		it( 'it rejects rejected promises', function() {
+			
+			return fifo( Promise.reject(test) )
+				.then( function(value) {
+					throw new Error( 'Should not have been called' );
+				} )
+				.catch( function(value) {
+					expect( value ).toBe( test );
+				} );
+				
+
+		} );	
+
+	} );
+
+	describe( 'queueing', function() {
+
+		// Need a better way of doing these
+
+		it( 'runs one function at a time', function() {
+
+			var fifo = promiseUtil.fifo();
+			var count = 0;
+
+			var result1 = fifo( function() {
+				count += 1;
+				return Promise.resolve(count)
+					.then( function() {
+						count += 1;
+						return count;
+					} );
+			} );
+
+			var result2 = fifo( function() {
+				count += 1;
+				return Promise.resolve(count)
+					.then( function() {
+						count += 1;
+						return count;
+					} );
+			} );
+
+			var result3 = fifo( function() {
+				count += 1;
+				return Promise.resolve(count)
+					.then( function() {
+						count += 1;
+						return count;
+					} );
+			} );
+
+			expect( count ).toBe( 0 );
+
+
+			return Promise.all( [
+					result1,
+					result2,
+					result3
+				] )
+				.then( function(data) {
+
+					expect(data).toEqual( [ 2, 4, 6 ] );
+				} );
+		} );
+
+		it( 'resolves mulitple function when using parallel', function() {
+
+			// Not sure this is a very good test
+
+			var fifo = promiseUtil.fifo( { parallel: 2 });
+			var count = 0;
+
+			var result1 = fifo( function() {
+				count += 1;
+				return Promise.resolve(count)
+					.then( function() {
+						count += 1;
+						return count;
+					} );
+			} );
+
+			var result2 = fifo( function() {
+				count += 1;
+				return Promise.resolve(count)
+					.then( function() {
+						count += 1;
+						return count;
+					} );
+			} );
+
+			var result3 = fifo( function() {
+				count += 1;
+				return Promise.resolve(count)
+					.then( function() {
+						count += 1;
+						return count;
+					} );
+			} );
+
+
+			expect( count ).toBe( 0 );
+
+
+			return Promise.all( [
+					result1,
+					result2,
+					result3
+				] )
+				.then( function(data) {
+
+					// 1 and 2 can start at the same time
+					// That means when 1 completes two will have already started
+					// increasing count by 1.
+					// 3 cannot start until 1 has completed
+
+					expect(data).toEqual( [ 3, 4, 6 ] );
+				} );
+
+		} );
+ 
+	} );
+	
+	
 
 } );
 
