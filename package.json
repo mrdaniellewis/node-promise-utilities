@@ -1,7 +1,7 @@
 {
   "name": "promise-util",
   "description": "Utility functions for working with Promises in Node",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "license": "ISC",
   "author": "Daniel Lewis",
   "repository": "git://github.com/mrdaniellewis/node-promise-utilities.git",
@@ -13,5 +13,7 @@
   "scripts": {
     "test": "mocha"
   },
-  "engines" : { "node" : ">=4" }
+  "engines": {
+    "node": ">=4"
+  }
 }
