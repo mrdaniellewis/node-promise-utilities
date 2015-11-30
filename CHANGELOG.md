@@ -15,3 +15,11 @@
 # Version 1.2.0 2015-07-12
 
 * Adding promiseUtil.fifo
+
+# Version 2.0.0 2015-11-30
+
+* Adding promiseUtil.sequence
+* Add tests for spawn
+* Removed the Promise polyfill
+* Remove any support for node < version 4
+* Switch to eslint and add .eslintrc files

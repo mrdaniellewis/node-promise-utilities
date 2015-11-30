@@ -1,7 +1,6 @@
 /* jshint node:true, mocha: true */
 "use strict";
 
-var Promise = require('require-promise');
 var Queue = require('../../').Queue;
 var memwatch = require('memwatch-next');
 var util = require('util');
@@ -13,7 +12,7 @@ var util = require('util');
 
 	console.log( 'This takes a long time to run' );
 
-	var maxLength = 100000;
+	var maxLength = 1000000;
 	var started = false;
 	var collection = [0];
 	var hd;

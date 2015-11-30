@@ -1,11 +1,8 @@
-/* jshint node:true */
-'use strict';
-
 /**
  *	Utilities to help with working with promises
  */
+'use strict';
 
-var Promise = require('require-promise');
 var Queue = require('./lib/promise-queue.js');
 
 var NOOP = function(){};
@@ -109,6 +106,25 @@ exports.fifo = function( options ) {
 
 		return promise;
 	};
+
+};
+
+/**
+ *	Run a sequence of functions as a promise
+ *	Each function is resolved with the previous functions return value
+ *
+ *	@param {Function[]} fns Array of functions
+ *	@param {Object} [start] Starting value to pass to the first function
+ */
+exports.sequence = function( fns, start ) {
+
+	return fns.reduce( (pre, cur) => {
+
+		return pre.then( x => {
+			return cur(x);
+		} );
+
+	}, Promise.resolve(start) );
 
 };
 

@@ -5,9 +5,6 @@
   "license": "ISC",
   "author": "Daniel Lewis",
   "repository": "git://github.com/mrdaniellewis/node-promise-utilities.git",
-  "dependencies": {
-    "require-promise": "1.0.1"
-  },
   "devDependencies": {
     "mocha": "*",
     "expect": "*",
@@ -15,5 +12,6 @@
   },
   "scripts": {
     "test": "mocha"
-  }
+  },
+  "engines" : { "node" : ">=4" }
 }

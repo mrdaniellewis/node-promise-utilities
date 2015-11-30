@@ -1,7 +1,5 @@
-/* jshint node:true, mocha: true */
 "use strict";
 
-var Promise = require('require-promise');
 var promiseUtil = require('../');
 var expect = require('expect');
 
@@ -431,24 +429,40 @@ describe( 'promiseUtil.fifo', function() {
 } );
 
 
+describe( 'promiseUtil.sequence', function() {
 
-/*
+	it( 'returns a Promise', function() {
 
-	
-	
-	
+		expect( promiseUtil.sequence( [] ) ).toBeA( Promise );
 
+	} );
 
-	// Generates the tests.  Running the tests returns a promise
+	it( 'resolves the supplied functions in a sequence', function() {
 
-var assert = require('assert');
-var promiseUtil = require('promise-util');
+		function addOneAsync(x) {
 
-module.exports = [
-	{	name: 'Spawn',
-		fn: function( pass, fail ) {
+			return Promise.resolve(x)
+				.then( y => ++x );
 
-		function *gen() {
+		}
+
+		var sequence = [ addOneAsync, addOneAsync, addOneAsync ];
+
+		return promiseUtil.sequence( sequence, 10 )
+			.then( x => {
+				expect(x).toEqual(13);
+			});
+
+	} );
+
+} );
+
+describe( 'promiseUtil.spawn', function() {
+
+	it( 'Resolves all yielded promises before continuing', function() {
+
+		function *generator() {
+
 			var count = 0;
 
 			count += yield 1;
@@ -456,75 +470,84 @@ module.exports = [
 				.then( function(value) {
 					return value + 4;
 				} );
-			try {
-				count += yield Promise.reject(8);
 
+			count += yield 8;
+			return count;	
+		}
+
+		return promiseUtil.spawn(generator)
+			.then( function(value) {
+				expect( value ).toBe( 1 + 2 + 4 + 8);
+			} );
+
+	} );
+
+	it( 'Returns a rejected promise if the generator contains rejected promises', function() {
+
+		function *generator() {
+
+			var count = 0;	
+			count += yield 1;
+			count += yield Promise.reject(2);
+			count += yield 4;
+
+			return count;	
+		}
+
+		return promiseUtil.spawn(generator)
+			.then( function(value) {
+				throw new Error('Should not have been called');
+			} )
+			.catch( function(e) {
+				expect(e).toBe(2);
+			} );
+
+	} );
+
+	it( 'Returns a rejected promise if the generator throws an error', function() {
+
+		function *generator() {
+
+			var count = 0;	
+			count += yield 1;
+			throw 2;
+			count += yield 4;
+
+			return count;	
+		}
+
+		return promiseUtil.spawn(generator)
+			.then( function(value) {
+				throw new Error('Should not have been called');
+			} )
+			.catch( function(e) {
+				expect(e).toBe(2);
+			} );
+
+	} );
+
+	it( 'Allows rejected promises to be caught as errors', function() {
+
+		function *generator() {
+
+			var count = 0;
+			
+			count += yield 1;
+
+			try {
+				count += yield Promise.reject(2);
 			} catch(e) {
 				count += e;
 			}
 
-			count += yield 16;
-			return count;
-
+			return count;	
 		}
 
-		promiseUtil.spawn(gen)
+		return promiseUtil.spawn(generator)
 			.then( function(value) {
-				assert.equal(value, 1+2+4+8+16 );
-				pass();
-			} )
-			.catch(fail);
+				expect( value ).toBe( 1 + 2);
+			} );
 
-		} 
-	},
+	} );
 
-	{	name: 'Spawn - returning rejected promise',
-		fn: function( pass, fail ) {
-
-		var count = 0;
-		function *gen() {
-	
-			count += yield 1;
-			count += yield Promise.reject(2);
-			count += yield 4;	
-
-		}
-
-		promiseUtil.spawn(gen)
-			.catch( function(value) {
-				assert.equal(value, 2 );
-				assert.equal(count, 1 );
-			} )
-			.then(pass)
-			.catch(fail);
-
-		} 
-	},
-
-	{	name: 'Spawn - returning error',
-		fn: function( pass, fail ) {
-
-		var count = 0;
-		function *gen() {
-	
-			count += yield 1;	
-			throw 'foo';
-			count += yield 2;	
-
-		}
-
-		promiseUtil.spawn(gen)
-			.catch( function(value) {
-				assert.equal(value, 'foo' );
-				assert.equal(count, 1 );
-			} )
-			.then(pass)
-			.catch(fail);
-
-		} 
-	}
-];
-
-
-
-*/
+} );
