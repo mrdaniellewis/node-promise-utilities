@@ -2,7 +2,6 @@
 "use strict";
 
 var expect = require('expect');
-var Promise = require('require-promise');
 var promiseUtil = require('../');
 var Queue = promiseUtil.Queue;
 

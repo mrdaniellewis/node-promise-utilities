@@ -23,3 +23,7 @@
 * Removed the Promise polyfill
 * Remove any support for node < version 4
 * Switch to eslint and add .eslintrc files
+
+# Version 2.0.1 2015-11-30
+
+* Fixed bad dependency
