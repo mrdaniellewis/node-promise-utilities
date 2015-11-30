@@ -194,5 +194,20 @@ fifo( function() {
 	.then( function() {
 		// Do something else
 	} );
+```
 
+## `sequence( ar, initial )`
+
+Given an array of functions run then as a sequence of Promises.
+
+* `ar` The array of functions
+* `initial` A starting value to pass to the first funtion
+
+Returns a Promise resolving to the value of the final function.
+
+## `spawn( generator )`
+
+Given a generator, run the generator resolving any yielded value as a promise and return the final value.
+
+See the "Bonus round: Promises and Generators" section in www.html5rocks.com/en/tutorials/es6/promises/.
 
