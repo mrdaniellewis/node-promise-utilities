@@ -1,579 +1,349 @@
-/* jshint node:true, mocha: true */
-"use strict";
+'use strict';
 
-var expect = require('expect');
-var promiseUtil = require('../');
-var Queue = promiseUtil.Queue;
+const promiseUtil = require( '../' );
+const expect = require( 'expect' );
 
-describe( 'Queue', function() {
+describe( 'promiseUtil.Queue', function() {
 
-	it( 'is an event emitter', function() {
-		expect( new Queue() ).toBeA( require('events').EventEmitter );
-	} );
+    it( 'is a function', function() {
 
-	it( 'can be initiated without the new keyword', function() {
+        expect( promiseUtil.Queue ).toBeA( Function );
 
-		/* jshint -W064 */
-		var queue = Queue();
-		expect(queue).toBeA(Queue);
+    } );
 
-	} );
+    it( 'creates a Queue instance', function() {
 
-	describe( 'then', function() {
+        expect( new promiseUtil.Queue( x => x ) )
+            .toBeA( promiseUtil.Queue );
 
-		it( 'accepts a function as an argument', function() {
-			new Queue().then( function(){} );
-		} );
+    } );
 
-		it( 'accepts two functions as arguments', function() {
-			new Queue().then( function(){}, function(){} );
-		} );
+    it( 'throws an error if not supplied with a function', function() {
 
-		it( 'accepts undefined and a function as arguments', function() {
-			new Queue().then( undefined, function(){} );
-		} );
+        expect( () => {
+            return new promiseUtil.Queue( {} );
+        } ).toThrow( 'first argument must be a function' );
 
-		it( 'returns the queue object for chaining', function() {
+    } );
 
-			var queue = new Queue();
-			var ret = queue.then( function(){} );
-			expect( ret ).toBe( queue );
+    describe( 'add and run', function() {
 
-		} );
+        it( 'runs queued actions to completion', function() {
 
-	} );
+            const spy = expect.createSpy().andCall( value => value );
+            const queue = new promiseUtil.Queue( spy );
+            [1, 2, 3, 4].forEach( item => queue.add( item ) );
 
-	describe( 'catch', function() {
+            return queue.run()
+                .then( () => {
 
-		it( 'accepts a function as an argument', function() {
-			new Queue().catch( function(){} );
-		} );
+                    expect( spy.calls.length ).toBe( 4 );
+                    expect( spy )
+                        .toHaveBeenCalledWith( 1 )
+                        .toHaveBeenCalledWith( 2 )
+                        .toHaveBeenCalledWith( 3 )
+                        .toHaveBeenCalledWith( 4 );
 
-		it( 'returns the queue object for chaining', function() {
+                } );
 
-			var queue = new Queue();
-			var ret = queue.catch( function(){} );
-			expect( ret ).toBe( queue );
+        } );
 
-		} );
+        it( 'runs a queue supplied with a generator to completion', function() {
 
-	} );
 
-	describe( 'run', function() {
+            const spy = expect.createSpy().andCall( value => value );
+            function *generator( value ) {
+                yield spy( value );
+            }
 
-		it( 'returns a promise', function() {
+            const queue = new promiseUtil.Queue( generator );
+            [1, 2, 3, 4].forEach( item => queue.add( item ) );
 
-			var ret = new Queue().run();
-			expect( ret ).toBeA( Promise );
+            return queue.run()
+                .then( () => {
 
-		} );
+                    expect( spy.calls.length ).toBe( 4 );
+                    expect( spy )
+                        .toHaveBeenCalledWith( 1 )
+                        .toHaveBeenCalledWith( 2 )
+                        .toHaveBeenCalledWith( 3 )
+                        .toHaveBeenCalledWith( 4 );
 
-		it( 'returns the native promise when available', function() {
+                } );
 
-			if ( global.Promise && global.Promise.toString() === 'function Promise() { [native code] }' ) {
-				var ret = new Queue().run();
-				expect( ret ).toBeA( global.Promise );
-			}
-			
-		} );
+        } );
 
-		it( 'resolves the supplied chain of promises', function() {
+        it( 'accepts multiple arguments to add', function() {
 
-			return new Queue()
-				.then( function(value) {
-					return ++value;	
-				} )
-				.then( function(value) {
-					return ++value;	
-				} )
-				.then( function(value) {
-					throw value;
-				} )
-				.catch( function(value) {
-					return value;
-				} )
-				.then( function(value) {
-					return ++value;	
-				} )
-				.run(0)
-					.then( function(value) {
-						expect( value ).toBe( 3 );
-					} );
-
-		} );
-
-		it( 'rejects the supplied chain of promises', function() {
-
-			return new Queue()
-				.then( function() {
-					throw new Error('error');
-				} )
-				.run()
-					.then( function() {
-						throw new Error( 'should not have been called' );
-					} )
-					.catch( function(value) {
-						expect( value ).toBeA( Error );
-						expect( value.message ).toBe( 'error' );
-					} );
-
-		} );
-
-		it( 'allows a resolving chain to be reused', function() {
-
-			var queue = new Queue()
-				.then( function(value) {
-					return ++value;	
-				} )
-				.then( function(value) {
-					return ++value;	
-				} );
-
-
-			return queue.run(0)
-				.then( function(value) {
-					return queue.run(value);
-				})
-				.then( function(value) {
-					expect(value).toBe(4);
-				});
-
-		} );
-
-		it( 'allows a rejecting chain to be reused', function() {
-
-			var queue = new Queue()
-				.then( function(value) {
-					throw new Error(value);
-				} );
-
-
-			return queue.run(0)
-				.catch( function(value) {
-					return queue.run(++value.message);
-				})
-				.then( function() {
-					throw new Error( 'should not have been called' );
-				} )
-				.catch( function(value) {
-					expect( value ).toBeA( Error );
-					expect( value.message ).toBe( "1" );
-				});
-
-		} );
-
-		it( 'runs tasks in the queue\'s context', function() {
-
-			var queue = new Queue()
-				.then( function() {
-					expect(this).toBe(queue);
-					throw new Error('error');
-				} )
-				.catch( function() {
-					expect(this).toBe(queue);
-				} );
-
-			return queue.run();
-
-		} );
-
-		it( 'emits a start event when starting', function() {
-
-			var queue = new Queue();
-			var started = 0;
-			queue.on( 'start', function() {
-				++started;
-			} );
-
-			queue.run()
-				.then( function() {
-					expect(started).toBe(1);
-					return queue.run();
-				} )
-				.then( function() {
-					expect(started).toBe(2);
-				} );
-
-		} );
-
-		it( 'emits a resolved event on a resolved chain', function() {
-
-			var queue = new Queue();
-			var resolved = null;
-			queue
-				.on( 'resolved', function(value) {
-					resolved = value;
-				} )
-				.then( function(value) {
-					return ++value;
-				} )
-				.then( function(value) {
-					return ++value;
-				} );
-
-			queue.run(0)
-				.then( function(value) {
-					expect(value).toBe(resolved);
-					expect(resolved).toBe(2);
-					return queue.run(value);
-				} )
-				.then( function(value) {
-					expect(value).toBe(resolved);
-					expect(resolved).toBe(4);
-				} );
-
-
-		} );
-		it( 'emits a rejected event on a rejected chain', function() {
-
-			var queue = new Queue();
-			var rejected = null;
-			queue
-				.on( 'rejected', function(value) {
-					rejected = value;
-				} )
-				.then( function(value) {
-					throw ++value;
-				} );
-
-			queue.run(0)
-				.then( function() {
-					throw new Error( 'should not have been called' );
-				} )
-				.catch( function(value) {
-					expect(value).toBe(rejected);
-					expect(rejected).toBe(1);
-					return queue.run(value);
-				} )
-				.then( function() {
-					throw new Error( 'should not have been called' );
-				} )
-				.then( function(value) {
-					expect(value).toBe(rejected);
-					expect(rejected).toBe(2);
-					return queue.run(value);
-				} );
-
-		} );
-
-	} );
-
-	describe( 'runSeries', function() {
-
-		var queue;
-
-		beforeEach( function() {
-
-			queue = new Queue()
-				.then( function(value) {
-					return ++value;	
-				} )
-				.then( function(value) {
-					return ++value;	
-				} )
-				.then( function(value) {
-					return ++value;	
-				} );
-
-		} );
-
-		it( 'runs the promise queue in a series and collects the results', function() {
-
-			return queue.runSeries([0,1,2,3,4,5])	
-				.then( function(results) {
-					expect(results).toEqual( [3,4,5,6,7,8] );
-				} );
-
-		} );
-		
-		describe( 'when the parallel argument is used', function() {
-			
-			it( 'runs the queues in parallel', function() {
-
-				return queue.runSeries( [0,1,2,3,4,5], {parallel: 2} )	
-					.then( function(results) {
-						expect(results).toEqual( [3,4,5,6,7,8] );
-					} );
-
-			} );
-
-			it( 'still runs if there are more "threads" than items to process', function() {
-
-				return queue.runSeries([0,1,2,3,4,5], {parallel: 100})
-					.then( function(results) {
-						expect(results).toEqual( [3,4,5,6,7,8] );
-					} );
-
-			} );
-
-			it( '"threads" start in the expected order', function() {
-
-				var testValue = 0;
-
-				var queue = new Queue()
-					.then( function() {
-						++testValue;
-						return testValue;
-					} )
-					//.then( promiseUtil.wait.bind(null,50) )
-					.then( function(value) {
-						++testValue;
-						return value;
-					} );
-
-				return queue.runSeries( [1,2,3], { parallel: 2 } )
-					.then( function(results) {
-
-						// The returned number is the value when
-						// the item in the queue started processing plus 1
-						// Starting adds 1, and finishing adds 1
-						// So two should start at once 0->1, 1->2, then they finish 2->3 and 3->4
-						// then one threads picks up the last time 4->5  
-						expect(results).toEqual( [1,2,5] );
-
-					})
-					.then( function() {
-						expect(testValue).toBe(6);
-					} );
-
-			} );
-
-		} );
-
-		describe( 'when the collection option is false', function() {
-			
-			it( 'runs the queue without collecting', function() {
-
-				var results = [];
-				queue.then( function(value) {
-					results.push(value);
-				} );
-
-				return queue.runSeries( [0,1,2,3,4,5], { collect: false } )
-					.then( function(value) {
-						expect(value).toBe( undefined );
-						expect(results).toEqual( [3,4,5,6,7,8] );
-					} );
-
-			} );
-
-			it( 'runs the queue in parallel without collecting', function() {
-
-				var results = [];
-				queue.then( function(value) {
-					results.push(value);
-				} );
-
-				return queue.runSeries( [0,1,2,3,4,5], { collect: false, parallel: 2 } )
-					.then( function(value) {
-						expect(value).toBe( undefined );
-						expect(results).toEqual( [3,4,5,6,7,8] );
-					} );
-
-			} );
-		} );
-
-		describe( 'dynamic collection', function() {
-			
-			it( 'allows items to be added in series', function() {
-
-				var collection = [5];
-
-				var queue = new Queue()
-					.then( function(value) {
-						if ( value > 0 ) {
-							collection.push( value - 1 );
-						}
-						return value;
-					});
-
-				return queue.runSeries( collection  )
-					.then( function(results) {
-						expect(results).toEqual( [5,4,3,2,1,0] );
-					} );
-			} );
-					
-			it( 'allows items to be added in parallel', function() {
-
-				var collection = [5];
-
-				var queue = new Queue()
-					.then( function(value) {
-						if ( value > 0 ) {
-							collection.push( value - 1 );
-						}
-						return value;
-					});
-
-				return queue.runSeries( collection, {parallel: 2} )
-					.then( function(results) {
-						expect(results).toEqual( [5,4,3,2,1,0] );
-					} );
-
-			} );
-
-		} );
-
-		it( 'rejects on an error', function() {
-
-			var queue = new Queue()
-				.then( function() {
-					throw new Error('error');
-				} );
-
-			return queue.runSeries( [1,2,3] )
-				.then( function() {
-					throw new Error( 'should not have been called' );
-				} )
-				.catch( function(value) {
-					expect(value).toBeA(Error);
-					expect(value.message).toBe('error');
-				} );
-
-		} );
-
-		describe( 'abort', function() {
-			
-			it( 'causes the series to reject', function() {
-				
-				var count = 0;
-				var queue = new Queue()
-					.then( function() {
-						++count;
-						if ( count === 2 ) {
-							series.abort();
-							return;
-						}
-					} );
-
-				var series = queue.runSeries( [1,2,3,4], { parallel: 3 } );
-
-				return series
-					.then( function() {
-						throw new Error( 'should not have been called' );
-					} )
-					.catch( function(e) {
-						expect( e ).toBeA( Error );
-						expect( e.message ).toBe( 'Aborted' );
-						// the third "thread" will already have run, abort was called on a then
-						expect( count ).toBe( 3 );
-					} )
-					// Give time for it to keep running
-					.then( promiseUtil.wait.bind(null, 100 ) );
-			} );
-			
-			it( 'rejects with the supplied argument', function() {
-
-				var count = 0;
-				var queue = new Queue()
-					.then( function() {
-						++count;
-						if ( count === 2 ) {
-							series.abort( new Error('error') );
-							return;
-						}
-					} );
-
-				var series = queue.runSeries( [1,2,3,4], { parallel: 3 } );
-
-				return series
-					.then( function() {
-						throw new Error( 'should not have been called' );
-					} )
-					.catch( function(e) {
-						expect( e ).toBeA( Error );
-						expect( e.message ).toBe( 'error' );
-						// the third "thread" will already have run, abort was called on a then
-						expect( count ).toBe( 3 );
-					} )
-					// Give time for it to keep running
-					.then( promiseUtil.wait.bind(null, 100 ) );
-
-			} );
-		} );
-
-		describe( 'the infinite option', function() {
-
-			var count, collection, queue;
-
-			beforeEach( function() {
-
-				count = 0;
-				collection = [1,2,3,4];
-
-				queue = new Queue()
-					.then( function() {
-						return ++count;
-					} );
-
-			} );
-
-			it( 'does not resolve until finish is called', function() {
-
-				var series = queue.runSeries( collection, { parallel: 3, infinite: true } );
-
-				var ret = series
-					.then( function(value) {
-						// Check the returned values are as expected
-						expect( value ).toBe( undefined );
-						expect( count ).toBe( 4 );
-					} );
-
-				// Wait enougth time for all items to finish	
-				promiseUtil.wait(100)
-					.then( function() {						
-						series.finish();
-					} );
-
-				return ret;
-
-			} );
-
-			it( 'resolves with the finish argument', function() {
-
-				var series = queue.runSeries( collection, { parallel: 3, infinite: true } );
-
-				var ret = series
-					.then( function(value) {
-						// Check the returned values are as expected
-						expect( value ).toBe( 'foo' );
-						expect( count ).toBe( 4 );
-					} );
-
-				// Wait enougth time for all items to finish	
-				promiseUtil.wait(100)
-					.then( function() {						
-						series.finish( 'foo' );
-					} );
-
-				return ret;
-
-			} );
-
-			it( 'collects when collect=true', function() {
-
-				var series = queue.runSeries( collection, { parallel: 3, infinite: true, collect: true } );
-
-				var ret = series
-					.then( function(value) {
-						// Check the returned values are as expected
-						expect( value ).toEqual( [1,2,3,4] );
-						expect( count ).toBe( 4 );
-					} );
-
-				// Wait enougth time for all items to finish	
-				promiseUtil.wait(100)
-					.then( function() {						
-						series.finish();
-					} );
-
-				return ret;
-
-			} );
-
-		} );
-
-	} );
+
+            const spy = expect.createSpy().andCall( value => value );
+            function *generator( value ) {
+                yield spy( value );
+            }
+
+            const queue = new promiseUtil.Queue( generator );
+            queue.add( 1, 2, 3, 4 );
+            
+            return queue.run()
+                .then( () => {
+
+                    expect( spy.calls.length ).toBe( 4 );
+                    expect( spy )
+                        .toHaveBeenCalledWith( 1 )
+                        .toHaveBeenCalledWith( 2 )
+                        .toHaveBeenCalledWith( 3 )
+                        .toHaveBeenCalledWith( 4 );
+
+                } );
+
+        } );
+
+        it( 'add returns this', function() {
+
+
+            const spy = expect.createSpy().andCall( value => value );
+            function *generator( value ) {
+                yield spy( value );
+            }
+
+            const queue = new promiseUtil.Queue( generator );
+            expect( queue.add() ).toBe( queue );
+
+        } );
+
+    } );
+
+    describe( 'stop', function() {
+
+        it( 'stops a running queue', function() {
+            
+            let count = 0;
+            const queue = new promiseUtil.Queue( x => x() );
+            const runners = Array.from( Array( 3 ), () => () => {
+                ++count;
+                queue.stop();
+            } );
+
+            runners.forEach( item => queue.add( item ) );
+
+            return queue.run()
+                .then( () => {
+                    throw new Error( 'Should not have been called' );
+                } )
+                .catch( e => { 
+                    expect( e.message ).toBe( 'stopped' );
+                } );    
+
+        } );
+
+        it( 'passes a custom error', function() {
+            
+            let count = 0;
+            const queue = new promiseUtil.Queue( x => x() );
+            const runners = Array.from( Array( 3 ), () => () => {
+                ++count;
+                queue.stop( new Error( 'foobar' ) );
+            } );
+            runners.forEach( item => queue.add( item ) );
+
+            return queue.run()
+                .then( () => {
+                    throw new Error( 'Should not have been called' );
+                } )
+                .catch( e => { 
+                    expect( e.message ).toBe( 'foobar' );
+                } );    
+
+        } );
+
+    } );
+
+    describe( 'pause and resume', function() {
+
+        it( 'pauses and resumes a queue', function() {
+            
+            const runners = [
+                promiseUtil.defer(),
+                promiseUtil.defer(),
+                promiseUtil.defer(),
+            ];
+
+            const queue = new promiseUtil.Queue( x => x() );
+            let ran = false;
+
+            queue.add( () => runners[0].resolve() );
+            queue.add( () => {
+                queue.pause();
+                runners[1].resolve();
+            } );
+            queue.add( () => {
+                ran = true;
+                runners[2].resolve();
+            } );
+
+            Promise.all( [runners[0], runners[1]] )   
+                .then( () => {
+                    // Runner 3 should not have run
+                    expect( ran ).toBe( false );
+                    return promiseUtil.wait( 0 );
+                } )
+                .then( () => {
+                    // This should start it running
+                    queue.resume();
+                } );
+
+            queue.run();    
+
+            // We can only exit if all three runners have run
+            return Promise.all( runners );
+
+        } );
+
+        it( 'adding an item does not resume a paused queue', function() {
+            
+            const runners = [
+                promiseUtil.defer(),
+                promiseUtil.defer(),
+                promiseUtil.defer(),
+            ];
+
+            const queue = new promiseUtil.Queue( x => x() );
+            let ran = false;
+
+            queue.add( () => runners[0].resolve() );
+            queue.add( () => {
+                queue.pause();
+                runners[1].resolve();
+                process.nextTick( () => {
+                    queue.add( x => x );
+                } );
+            } );
+            queue.add( () => {
+                ran = true;
+            } );
+
+            queue.run();
+
+            // Wait until the first two runners finish
+            return Promise.all( [runners[0], runners[1]] )
+                .then( () => promiseUtil.wait( 0 ) )
+                .then( () => {
+                    // It should have paused.
+                    // Make sure three never run
+                    expect( ran ).toBe( false );
+                } );
+        } );
+
+    } );
+
+    describe( 'collect option', function() {
+        
+        it( 'returns the result of all queue operations', function() {
+            
+            const queue = new promiseUtil.Queue( value => value, { collect: true } );
+            [1, 2, 3, 4].forEach( item => queue.add( item ) );
+
+            return queue.run()
+                .then( values => {
+
+                    expect( values ).toEqual( [1, 2, 3, 4] );
+
+                } );
+
+        } );
+
+    } );
+
+    describe( 'parallel option', function() {
+
+        it( 'runs the queue in parallel', function() {
+
+            let testValue = 0;
+
+            function *generator() {
+
+                let count = testValue;
+                ++testValue;
+                yield 1;
+                count += yield Promise.resolve( 1 );
+                ++testValue;
+                return count;   
+            }
+
+            const queue = new promiseUtil.Queue( generator, { parallel: 2, collect: true } );
+            [1, 2, 3].forEach( item => queue.add( item ) );
+
+            return queue.run()  
+                .then( results => {
+                    
+                    // The result is the value of testValue
+                    // when the generator started processing plus 1
+                    // If all three items start at once the output would be [1,2,3]
+                    // If they ran one at a time it would be [1,3,5]
+
+                    expect( results ).toEqual( [1, 2, 5] );
+                    expect( testValue ).toBe( 6 );
+                } );
+
+
+        } );
+
+    } );
+
+    describe( 'infinite option', function() {
+        
+        it( 'keeps the queue open after all items have been processed', function() {
+            const runners = Array.from( Array( 5 ), () => promiseUtil.defer() );
+            const queue = new promiseUtil.Queue( x => x.resolve(), { infinite: true } );
+            runners.forEach( item => queue.add( item ) );
+
+            queue.run();
+
+            return Promise.all( runners )
+                .then( () => promiseUtil.wait( 0 ) )
+                .then( () => {
+                    const newItem = promiseUtil.defer();
+                    queue.add( newItem );
+                    return newItem;
+                } );
+
+        } );
+
+    } );
+
+    describe( 'iterator option', function() {
+
+        it( 'can take a custom iterator using the wait symbol', function() {
+            
+            function *iterator() {
+                yield 1;
+                yield 2;
+                yield promiseUtil.Queue.waitSymbol;
+                yield 3;
+            }
+
+            const queue = new promiseUtil.Queue( x => x, { 
+                iterator: iterator(), 
+                collect: true,
+            } );
+
+            let paused = false;
+
+            // If the queue does not pause this test
+            // will complete before this is run
+            setImmediate( () => {
+                paused = true;
+                queue.resume();
+            } );
+
+            return queue.run()
+                .then( values => {
+                    expect( values ).toEqual( [1, 2, 3] );
+                    expect( paused ).toBe( true );
+                } );
+
+        } );
+
+    } );
 
 } );
-

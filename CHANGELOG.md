@@ -1,3 +1,26 @@
+# Version 3.0.0 2015-03-14
+
+* Coroutine replaces spawn
+* Added series
+* Rewrote queue to use series and support generators
+* Rewrote fifo
+
+# Version 2.0.1 2015-11-30
+
+* Fixed bad dependency
+
+# Version 2.0.0 2015-11-30
+
+* Adding promiseUtil.sequence
+* Add tests for spawn
+* Removed the Promise polyfill
+* Remove any support for node < version 4
+* Switch to eslint and add .eslintrc files
+
+# Version 1.2.0 2015-07-12
+
+* Adding promiseUtil.fifo
+
 # Version 1.0.0 2015-02-01
 
 * Added `Queue`
@@ -12,18 +35,6 @@
 
 * Promise is now polyfilled using `require-promise`.  This means users of node 0.12 get the native Promise!
 
-# Version 1.2.0 2015-07-12
 
-* Adding promiseUtil.fifo
 
-# Version 2.0.0 2015-11-30
 
-* Adding promiseUtil.sequence
-* Add tests for spawn
-* Removed the Promise polyfill
-* Remove any support for node < version 4
-* Switch to eslint and add .eslintrc files
-
-# Version 2.0.1 2015-11-30
-
-* Fixed bad dependency
