@@ -341,6 +341,13 @@ const Queue = exports.Queue = class {
     }
 
     /**
+     *  Is the queue still running
+     */
+    get isRunning() {
+        return this._iterator.length > 0 || this._count > 0;
+    }
+
+    /**
      *  Next function for our infinite iterator
      */
     _next() {

@@ -346,4 +346,30 @@ describe( 'promiseUtil.Queue', function() {
 
     } );
 
+    describe( 'isRunning', function() {
+
+        it( 'tells you if the queue is running', function() {
+            
+            const running = [];
+
+            const queue = new promiseUtil.Queue( () => {
+                running.push( queue.isRunning );
+            } );
+
+            expect( queue.isRunning ).toBe( false );
+
+            queue.add( 1, 2, 3 );
+
+            expect( queue.isRunning ).toBe( true );
+
+            return queue.run()
+                .then( () => {
+                    expect( running ).toEqual( [true, true, true] );
+                    expect( queue.isRunning ).toBe( false );
+                } );
+
+        } );
+
+    } );
+
 } );
