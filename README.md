@@ -242,6 +242,10 @@ Resume the queue.
 
 If using a custom iterator this can be used to restart the queue running if additional items have been added to the iterator.
 
+#### `Queue.prototype.isDrained`
+
+Does the queue have have anything running or queued.  This can be used to check if an infinite queue is empty.
+
 ## `fifo( fn, options )`
 
 A first in first out queue.  Runs a task in the order they are given ensuring tasks complete before the next one starts.

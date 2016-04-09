@@ -341,9 +341,9 @@ const Queue = exports.Queue = class {
     }
 
     /**
-     *  Is the queue still running
+     *  Does the queue have anything left
      */
-    get isRunning() {
+    get isDrained() {
         return this._iterator.length > 0 || this._count > 0;
     }
 

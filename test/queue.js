@@ -346,26 +346,26 @@ describe( 'promiseUtil.Queue', function() {
 
     } );
 
-    describe( 'isRunning', function() {
+    describe( 'isDrained', function() {
 
         it( 'tells you if the queue is running', function() {
             
             const running = [];
 
             const queue = new promiseUtil.Queue( () => {
-                running.push( queue.isRunning );
+                running.push( queue.isDrained );
             } );
 
-            expect( queue.isRunning ).toBe( false );
+            expect( queue.isDrained ).toBe( false );
 
             queue.add( 1, 2, 3 );
 
-            expect( queue.isRunning ).toBe( true );
+            expect( queue.isDrained ).toBe( true );
 
             return queue.run()
                 .then( () => {
                     expect( running ).toEqual( [true, true, true] );
-                    expect( queue.isRunning ).toBe( false );
+                    expect( queue.isDrained ).toBe( false );
                 } );
 
         } );
